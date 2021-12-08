@@ -1,15 +1,19 @@
+#%%
 import psycopg2
 from sql_queries import create_table_queries, drop_table_queries
+from env_settings import get_env_vars
 
-
+env_vars = get_env_vars()
+#%%
 def create_database():
     """
     - Creates and connects to the sparkifydb
     - Returns the connection and cursor to sparkifydb
     """
-    
+    user = env_vars["DB_USER"]
+    password = env_vars["DB_PASSWORD"]
     # connect to default database
-    conn = psycopg2.connect("host=127.0.0.1 dbname=studentdb user=student password=student")
+    conn = psycopg2.connect(f"host=127.0.0.1 dbname=studentdb user={user} password={password}")
     conn.set_session(autocommit=True)
     cur = conn.cursor()
     
@@ -21,11 +25,11 @@ def create_database():
     conn.close()    
     
     # connect to sparkify database
-    conn = psycopg2.connect("host=127.0.0.1 dbname=sparkifydb user=student password=student")
+    conn = psycopg2.connect(f"host=127.0.0.1 dbname=sparkifydb user={user} password={password}")
     cur = conn.cursor()
     
     return cur, conn
-
+#%%
 
 def drop_tables(cur, conn):
     """
@@ -64,7 +68,7 @@ def main():
     create_tables(cur, conn)
 
     conn.close()
-
+#%%
 
 if __name__ == "__main__":
     main()
