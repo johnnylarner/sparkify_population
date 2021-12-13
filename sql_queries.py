@@ -10,16 +10,14 @@ time_table_drop = "DROP TABLE IF EXISTS time"
 
 songplay_table_create = ("""
 CREATE TABLE IF NOT EXISTS songplays (
-    songplay_id int GENERATED ALWAYS AS IDENTITY,
     start_time timestamp,
     user_id int,
     level varchar(4),
-    song_id varchar(18), 
+    song_id varchar(18),
     artist_id varchar(18),
     session_id int,
     location varchar,
-    user_agent varchar,
-    PRIMARY KEY(songplay_id)
+    user_agent varchar
 );  
 """)
 
@@ -30,8 +28,7 @@ CREATE TABLE IF NOT EXISTS users (
     first_name varchar,
     last_name varchar,
     gender varchar,
-    level varchar(4),
-    PRIMARY KEY(user_id)
+    level varchar(4)
 );
 
 """)
@@ -66,11 +63,71 @@ CREATE TABLE IF NOT EXISTS time (
     day int,
     week int,
     month int,
-    weekday varchar,
-    PRIMARY KEY(start_time)
-);
+    weekday varchar
+    );
 
 """)
+
+
+# ADD ID COLUMNS FOR DELETING DUPLICATES
+
+add_time_id = ("ALTER TABLE time ADD id int GENERATED ALWAYS AS IDENTITY;")
+add_user_id = ("ALTER TABLE users ADD id int GENERATED ALWAYS AS IDENTITY;")
+add_songplay_id = ("ALTER TABLE songplays ADD id int GENERATED ALWAYS AS IDENTITY;")
+ 
+# IDENTIFY AND DELETE DUPLICATES
+
+remove_time_duplicates = ("""
+WITH CTE AS(
+   SELECT *,
+    ROW_NUMBER()OVER(PARTITION BY start_time ORDER BY start_time) as rn
+   FROM time
+)
+DELETE FROM time WHERE id in (SELECT id FROM CTE WHERE rn >1);
+""")
+
+remove_user_duplicates = ("""
+WITH CTE AS(
+   SELECT *,
+    ROW_NUMBER()OVER(PARTITION BY user_id ORDER BY user_id) as rn
+   FROM users
+)
+DELETE FROM users WHERE id in (SELECT id FROM CTE WHERE rn >1);
+""")
+
+remove_songplay_duplicates = ("""
+WITH CTE AS(
+   SELECT *,
+    ROW_NUMBER()OVER(PARTITION BY 
+        start_time, user_id, level, song_id, 
+        artist_id, session_id, location, user_agent) as rn
+   FROM songplays
+)
+DELETE FROM songplays WHERE id in (SELECT id FROM CTE WHERE rn >1);
+""")
+
+
+# ADD PK CONTRAINT AFTER DUPLICATES REMOVED
+
+add_time_pk_constraint = ("""
+ALTER TABLE time ADD PRIMARY KEY(start_time);
+""")
+
+add_user_pk_constraint = ("""
+ALTER TABLE users ADD PRIMARY KEY(user_id);
+""")
+
+add_songplay_pk_constraint = ("""
+ALTER TABLE songplays ADD PRIMARY KEY(id);
+""")
+
+# REMOVE ID COLUMNS AS PK CONTRAINTS ADDED
+remove_time_id = ("ALTER TABLE time DROP id;")
+remove_user_id = ("ALTER TABLE users DROP id;")
+
+# RESET AUTO INCREMENT FOR SONGPLAYS
+reset_songplay_id = ("ALTER SEQUENCE songplays_id_seq RESTART WITH 1")
+
 
 # INSERT RECORDS
 
@@ -154,6 +211,13 @@ ON s.artist_id = a.artist_id
 WHERE s.title = %s AND a.name = %s AND s.duration = %s
 """
 )
+
+song_select_all = ("""
+SELECT s.song_id, s.title, a.artist_id, a.name, s.duration
+FROM songs s
+LEFT JOIN artists a
+ON s.artist_id = a.artist_id;
+""")
 
 # SELECT DATA FOR CLEANING
 
