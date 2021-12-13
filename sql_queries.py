@@ -76,6 +76,7 @@ add_user_id = ("ALTER TABLE users ADD id int GENERATED ALWAYS AS IDENTITY;")
 add_songplay_id = ("ALTER TABLE songplays ADD id int GENERATED ALWAYS AS IDENTITY;")
  
 # IDENTIFY AND DELETE DUPLICATES
+# https://stackoverflow.com/questions/18390574/how-to-delete-duplicate-rows-in-sql-server
 
 remove_time_duplicates = ("""
 WITH CTE AS(
