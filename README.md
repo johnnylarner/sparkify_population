@@ -20,7 +20,6 @@ Processing the log files required additional transformation. The time, users and
 1. Clone repo
 2. Install requirements as per the requirements.txt file.
 3. Ensure you have an localhost instance of Postgres running on your machine called studentdb.
-4. Add a .env file with the keys DB_USER and DB_PASSWORD to the repo root folder.
-    i. These should allow you to connect to studentdb
+4. Add a .env file with the keys DB_USER and DB_PASSWORD to the repo root folder. These should allow you to connect to studentdb
 5. Execute create_tables.py followed by etl.py
 6. Have fun querying the sparkifydb!
